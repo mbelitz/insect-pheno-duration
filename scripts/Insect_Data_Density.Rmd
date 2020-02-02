@@ -75,12 +75,119 @@ map_occ_data("Popillia japonica")
 ```
 
 ## Lubber Grasshoppers - Romaleidae
-Romalea microptera Eastern Lubber Grasshopper
+Romalea microptera (Eastern Lubber Grasshopper)
 
 ```{r romaleidae, echo=FALSE, cache=TRUE,fig.width=8, fig.height=11}
 summarize_occ_data("Romalea microptera")
 map_occ_data("Romalea microptera")
 ```
 
+## Silk moths - Saturniidae
+Antheraea polyphemus (Polyphemus Moth)
+
+```{r saturniidae, echo=FALSE, cache=TRUE, fig.width=8, fig.height=11}
+summarize_occ_data("Antheraea polyphemus")
+map_occ_data("Antheraea polyphemus")
+```
+
+## Lady Beetles - Coccinellidae
+Harmonia axyridis (Asian Lady Beetle)
+
+```{r coccinellidae, echo=FALSE, cache=TRUE, fig.width=8, fig.height=11}
+summarize_occ_data("Harmonia axyridis")
+map_occ_data("Harmonia axyridis")
+```
+
+## Carrion Beetles - Silphidae
+Necrophila americana American Carrion Beetle
+
+```{r silphidae, echo=FALSE, cache=TRUE, fig.width=8, fig.height=11}
+summarize_occ_data("Necrophila americana")
+map_occ_data("Necrophila americana")
+```
+
+## Mayflies - Ephemeroptera
+Hexagenia limbata (Giant Mayfly)
+
+```{r ephemeroptera, echo=FALSE, cache=TRUE, fig.width=8, fig.height=11}
+summarize_occ_data("Hexagenia limbata")
+map_occ_data("Hexagenia limbata")
+```
+
+## Cicadas (Cicadidae)
+Neotibicen tibicen (Swamp Cicada)
+
+```{r cicadidae, echo=FALSE, cache=TRUE, fig.width=8, fig.height=11}
+summarize_occ_data("Neotibicen tibicen")
+map_occ_data("Neotibicen tibicen")
+```
+
+## Stink Bugs (Pentatomidae)
+First I'll do the brown marmorated, but it is a recent invasive. 
+Halyomorpha halys (Brown Marmorated Stink Bug)
+```{r pentatomidae, echo=FALSE, cache=TRUE, fig.width=8, fig.height=11}
+summarize_occ_data("Halyomorpha halys")
+map_occ_data("Halyomorpha halys")
+```
+
+Here's the second most observed on iNat.
+Chinavia hilaris (Green Stink Bug) Chinavia halaris
+Well tried to do this for Chinavia hilaris, but iNat and gbif disagree on taxonomy. So just using Chinavia genus.
+```{r pentatomidae2, echo=FALSE, cache=TRUE, fig.width=8, fig.height=11}
+summarize_occ_data("Chinavia")
+map_occ_data("Chinavia")
+```
+
+## Dragonflies (Odonata)
+Pachydiplax longipennis (Blue Dasher)
+```{r odonata, echo=FALSE, cache=TRUE, fig.width=8, fig.height=11}
+summarize_occ_data("Pachydiplax longipennis")
+map_occ_data("Pachydiplax longipennis")
+```
+
+## Typical Leaf Hoppers (Cicadellidae)
+Graphocephala coccinea (Red-banded Leafhopper)
+
+```{r cicadellidae, echo=FALSE, cache=TRUE, fig.width=8, fig.height=11}
+summarize_occ_data("Graphocephala coccinea")
+map_occ_data("Graphocephala coccinea")
+```
+
+## Katydids (Orthoptera)
+Scudderia furcata (Fork-tailed Bush Katydid)
+
+```{r orthoptera2, echo=FALSE, cache=TRUE, fig.width=8, fig.height=11}
+summarize_occ_data("Scudderia furcata")
+map_occ_data("Scudderia furcata")
+```
+
+## Dobsonflies and fishflies (Megaloptera)
+Corydalus cornutus (Eastern Dobsonfly)
+
+```{r megaloptera, echo=FALSE, cache=TRUE, fig.width=8, fig.height=11}
+summarize_occ_data("Corydalus cornutus")
+map_occ_data("Corydalus cornutus")
+```
+
+## Velvet Ants (Mutillidae)
+Dasymutilla occidentalis (Common Eastern Velvet Ant)
+
+```{r mutillidae, echo=FALSE, cache=TRUE, fig.width=8, fig.height=11}
+summarize_occ_data("Dasymutilla occidentalis")
+map_occ_data("Dasymutilla occidentalis")
+```
+
+## Prosapia bicincta (Two-lined Spittlebug)
+```{r prosapia, echo=FALSE, cache=TRUE, fig.width=8, fig.height=11}
+summarize_occ_data("Prosapia bicincta")
+map_occ_data("Prosapia bicincta")
+```
 
 
+## Leaf-footed/squash bugs (Coreidae)
+Acanthocephala terminalis (Spine-headed Bug)
+
+```{r coreidae, echo=FALSE, cache=TRUE, fig.width=8, fig.height=11}
+summarize_occ_data("Acanthocephala terminalis")
+map_occ_data("Acanthocephala terminalis")
+```
