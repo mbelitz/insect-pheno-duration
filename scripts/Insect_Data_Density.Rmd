@@ -9,7 +9,7 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r mappingScript, echo=FALSE}
+```{r mappingScript, echo=FALSE, warning=FALSE, message=FALSE}
 library(rgbif)
 library(dplyr)
 library(lubridate)
@@ -39,17 +39,48 @@ map_occ_data <- function(binomial){
     ggtitle(label = binomial) +
     facet_wrap(~year)
 }
+
+## Function to make summary table
+
+summarize_occ_data <- function(binomial){
+  dat <- occ_search(scientificName = binomial, hasCoordinate = TRUE, country = "US", limit = 200000)
+  
+  sp_df <- dat$data %>% 
+    mutate(doy = lubridate::day(eventDate)) %>% 
+    filter(!is.na(year)) %>% 
+    filter(!is.na(doy))
+  
+  sum_table <- sp_df %>% 
+    group_by(year, basisOfRecord) %>% 
+    summarise(count = n())
+  
+  sum_table <- sum_table %>% 
+    filter(count >= 10)
+  
+  return(sum_table)
+}
 ```
 
 
 ## Data density of potential insects 
 
-For this initial explorations, I wrote a function that would map the observations and show the basisOfRecord for a species of choice through time. 
+For this initial exploration, I wrote a function that would map the observations and show the basisOfRecord for a species of choice through time. I also summarize the number of obsevations per basisOfRecord for each available year. The summary table only shows years with >= 10 observations per basisOfRecord.  
 
+## Dung Beetles
+Top species on iNat: Japanese Beetle - Popilia japonica 
 
-## Japanese Beetle - Popilia japonica 
-
-```{r pressure, echo=FALSE, cache=TRUE}
+```{r scarabedia, echo=FALSE, cache=TRUE, fig.width=8, fig.height=11}
+summarize_occ_data("Popillia japonica")
 map_occ_data("Popillia japonica")
 ```
+
+## Lubber Grasshoppers - Romaleidae
+Romalea microptera Eastern Lubber Grasshopper
+
+```{r romaleidae, echo=FALSE, cache=TRUE,fig.width=8, fig.height=11}
+summarize_occ_data("Romalea microptera")
+map_occ_data("Romalea microptera")
+```
+
+
 
