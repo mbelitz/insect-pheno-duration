@@ -6,7 +6,8 @@ output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(fig.width = 12, fig.height = 8)
 ```
 
 ```{r mappingScript, echo=FALSE, warning=FALSE, message=FALSE}
@@ -16,28 +17,52 @@ library(lubridate)
 library(ggplot2)
 library(rnaturalearth)
 library(sf)
+library(ridigbio)
 
 # function to map gbif occurrence data
 
-map_occ_data <- function(binomial){
-  dat <- occ_search(scientificName = binomial, hasCoordinate = TRUE, country = "US", limit = 200000)
+heat_map_obs <- function(binomial){
   
-  sp_df <- dat$data %>% 
-    mutate(doy = lubridate::day(eventDate)) %>% 
-    filter(!is.na(year)) %>% 
-    filter(!is.na(doy))
+  idig <- idig_search_records(limit = 10000, rq = list(scientificname = binomial), 
+            fields = c("data.dwc:decimalLongitude", "data.dwc:decimalLatitude",
+                       "data.dwc:year", "data.dwc:month", "data.dwc:eventDate",
+                       "data.dwc:scientificName", "data.dwc:basisOfRecord")) 
   
+  names(idig) <- c("decimalLongitude", "decimalLatitude", "year", "month", "eventDate",
+                    "scientificName", "basisOfRecord")
   
+  #rgbif
+gbif <- occ_search(scientificName = binomial,
+                      hasCoordinate = TRUE, country = "US",
+                      limit = 200000)
+
+gbif_df <- gbif$data %>% 
+  filter(basisOfRecord == "HUMAN_OBSERVATION") %>% 
+  select(decimalLongitude, decimalLatitude, year, month, eventDate, 
+         scientificName, basisOfRecord)
   
+total <- rbind(gbif_df, idig) %>% 
+  filter(!is.na(year)) %>% 
+  filter(!is.na(decimalLatitude)) %>% 
+  filter(!is.na(decimalLongitude)) %>% 
+  filter(!is.na(eventDate))
+  
+total$decimalLongitude <- as.numeric(total$decimalLongitude)
+total$decimalLatitude <- as.numeric(total$decimalLatitude)
+total$year <- as.numeric(total$year)
+
+total <- total %>% 
+  mutate(decade = floor(year/10)*10)
+
   us <- rnaturalearth::ne_countries(country = "United States of America", 
                                  returnclass = "sf")
   
-  ggplot() + 
-    geom_sf(us, mapping = aes()) + 
-    geom_point(sp_df, mapping = aes(x = decimalLongitude, y = decimalLatitude, color = basisOfRecord)) + 
-    coord_sf( xlim = c(-125, -65), ylim = c(20, 60))+
-    ggtitle(label = binomial) +
-    facet_wrap(~year)
+ggplot() + 
+  geom_sf(us, mapping = aes()) +
+  geom_bin2d(total,mapping = aes(x = decimalLongitude, y = decimalLatitude), alpha = 0.9, binwidth = c(2,2)) + 
+  coord_sf( xlim = c(-125, -65), ylim = c(20, 60)) +
+  scale_fill_continuous(type = "viridis",trans = "log10") + 
+  facet_wrap(~decade)
 }
 
 ## Function to make summary table
@@ -64,130 +89,93 @@ summarize_occ_data <- function(binomial){
 
 ## Data density of potential insects 
 
-For this initial exploration, I wrote a function that would map the observations and show the basisOfRecord for a species of choice through time. I also summarize the number of obsevations per basisOfRecord for each available year. The summary table only shows years with >= 10 observations per basisOfRecord.  
+For this second exploration, I wrote a function that would map the observations by decades as a heat map.
 
-## Dung Beetles
-Top species on iNat: Japanese Beetle - Popilia japonica 
+## Saturniidae
 
-```{r scarabedia, echo=FALSE, cache=TRUE, fig.width=8, fig.height=11}
-summarize_occ_data("Popillia japonica")
-map_occ_data("Popillia japonica")
+Automeris io
+
+```{r, io}
+heat_map_obs("Automeris io")
 ```
 
-## Lubber Grasshoppers - Romaleidae
-Romalea microptera (Eastern Lubber Grasshopper)
+Eacles imperialis
 
-```{r romaleidae, echo=FALSE, cache=TRUE,fig.width=8, fig.height=11}
-summarize_occ_data("Romalea microptera")
-map_occ_data("Romalea microptera")
+```{r, eacles, cache=TRUE}
+heat_map_obs("Eacles imperialis")
 ```
 
-## Silk moths - Saturniidae
-Antheraea polyphemus (Polyphemus Moth)
+Antheraea polyphemus
 
-```{r saturniidae, echo=FALSE, cache=TRUE, fig.width=8, fig.height=11}
-summarize_occ_data("Antheraea polyphemus")
-map_occ_data("Antheraea polyphemus")
+```{r, polyphemus, cache=TRUE}
+heat_map_obs("Antheraea polyphemus")
 ```
 
-## Lady Beetles - Coccinellidae
-Harmonia axyridis (Asian Lady Beetle)
+Dryocampa rubicunda
 
-```{r coccinellidae, echo=FALSE, cache=TRUE, fig.width=8, fig.height=11}
-summarize_occ_data("Harmonia axyridis")
-map_occ_data("Harmonia axyridis")
+```{r, dryocampa, cache=TRUE}
+heat_map_obs("Dryocampa rubicunda")
 ```
 
-## Carrion Beetles - Silphidae
-Necrophila americana American Carrion Beetle
+Hemileuca eglanterina
 
-```{r silphidae, echo=FALSE, cache=TRUE, fig.width=8, fig.height=11}
-summarize_occ_data("Necrophila americana")
-map_occ_data("Necrophila americana")
-```
-
-## Mayflies - Ephemeroptera
-Hexagenia limbata (Giant Mayfly)
-
-```{r ephemeroptera, echo=FALSE, cache=TRUE, fig.width=8, fig.height=11}
-summarize_occ_data("Hexagenia limbata")
-map_occ_data("Hexagenia limbata")
-```
-
-## Cicadas (Cicadidae)
-Neotibicen tibicen (Swamp Cicada)
-
-```{r cicadidae, echo=FALSE, cache=TRUE, fig.width=8, fig.height=11}
-summarize_occ_data("Neotibicen tibicen")
-map_occ_data("Neotibicen tibicen")
-```
-
-## Stink Bugs (Pentatomidae)
-First I'll do the brown marmorated, but it is a recent invasive. 
-Halyomorpha halys (Brown Marmorated Stink Bug)
-```{r pentatomidae, echo=FALSE, cache=TRUE, fig.width=8, fig.height=11}
-summarize_occ_data("Halyomorpha halys")
-map_occ_data("Halyomorpha halys")
-```
-
-Here's the second most observed on iNat.
-Chinavia hilaris (Green Stink Bug) Chinavia halaris
-Well tried to do this for Chinavia hilaris, but iNat and gbif disagree on taxonomy. So just using Chinavia genus.
-```{r pentatomidae2, echo=FALSE, cache=TRUE, fig.width=8, fig.height=11}
-summarize_occ_data("Chinavia")
-map_occ_data("Chinavia")
-```
-
-## Dragonflies (Odonata)
-Pachydiplax longipennis (Blue Dasher)
-```{r odonata, echo=FALSE, cache=TRUE, fig.width=8, fig.height=11}
-summarize_occ_data("Pachydiplax longipennis")
-map_occ_data("Pachydiplax longipennis")
-```
-
-## Typical Leaf Hoppers (Cicadellidae)
-Graphocephala coccinea (Red-banded Leafhopper)
-
-```{r cicadellidae, echo=FALSE, cache=TRUE, fig.width=8, fig.height=11}
-summarize_occ_data("Graphocephala coccinea")
-map_occ_data("Graphocephala coccinea")
-```
-
-## Katydids (Orthoptera)
-Scudderia furcata (Fork-tailed Bush Katydid)
-
-```{r orthoptera2, echo=FALSE, cache=TRUE, fig.width=8, fig.height=11}
-summarize_occ_data("Scudderia furcata")
-map_occ_data("Scudderia furcata")
-```
-
-## Dobsonflies and fishflies (Megaloptera)
-Corydalus cornutus (Eastern Dobsonfly)
-
-```{r megaloptera, echo=FALSE, cache=TRUE, fig.width=8, fig.height=11}
-summarize_occ_data("Corydalus cornutus")
-map_occ_data("Corydalus cornutus")
-```
-
-## Velvet Ants (Mutillidae)
-Dasymutilla occidentalis (Common Eastern Velvet Ant)
-
-```{r mutillidae, echo=FALSE, cache=TRUE, fig.width=8, fig.height=11}
-summarize_occ_data("Dasymutilla occidentalis")
-map_occ_data("Dasymutilla occidentalis")
-```
-
-## Prosapia bicincta (Two-lined Spittlebug)
-```{r prosapia, echo=FALSE, cache=TRUE, fig.width=8, fig.height=11}
-summarize_occ_data("Prosapia bicincta")
-map_occ_data("Prosapia bicincta")
+```{r, hemileuca, cache=TRUE}
+heat_map_obs("Hemileuca eglanterina")
 ```
 
 
-## Leaf-footed/squash bugs (Coreidae)
-Acanthocephala terminalis (Spine-headed Bug)
+## Cicadidae
 
-```{r coreidae, echo=FALSE, cache=TRUE, fig.width=8, fig.height=11}
-summarize_occ_data("Acanthocephala terminalis")
-map_occ_data("Acanthocephala terminalis")
+Platypedia putnami
+
+```{r, platypedia,cache=TRUE}
+heat_map_obs("Platypedia putnami")
+```
+
+Magicicada septendecim
+
+```{r, septendecim, cache=TRUE}
+heat_map_obs("Magicicada septendecim")
+```
+
+Tibicen esfandiarii
+```{r, esfandiarii, cache=TRUE}
+heat_map_obs("Tibicen esfandiarii")
+```
+
+## Ephemeroptera
+
+Stenacron interpunctatum
+```{r, stenacron,cache=TRUE}
+heat_map_obs("Stenacron interpunctatum")
+```
+
+## Odonata
+
+Ischnura verticalis
+
+```{r, Ischnura, cache=TRUE}
+heat_map_obs("Ischnura verticalis")
+```
+
+## Megaloptera
+
+Nigronia serricornis
+
+```{r, Nigronia serricornis, cache=TRUE}
+heat_map_obs("Nigronia serricornis")
+```
+
+## Silphidae 
+
+Nicrophorus orbicollis
+
+```{r, Nicrophorus orbicollis, cache=TRUE}
+heat_map_obs("Nicrophorus orbicollis")
+```
+
+## Coccinellidae
+
+```{r, Hippodamia, cache=TRUE}
+heat_map_obs("Hippodamia convergens")
 ```
