@@ -8,10 +8,12 @@ get_records <- function(binomial){
                             fields = c("data.dwc:decimalLongitude", "data.dwc:decimalLatitude",
                                        "data.dwc:year", "data.dwc:month", "data.dwc:eventDate",
                                        "data.dwc:scientificName", "data.dwc:basisOfRecord", 
-                                       "data.dwc:coordinateUncertaintyInMeters", "data.dwc:institutionCode" )) 
+                                       "data.dwc:coordinateUncertaintyInMeters", "data.dwc:institutionCode",
+                                       "data.dwc::lifeStage")) 
 
   names(idig) <- c("decimalLongitude", "decimalLatitude", "year", "month", "eventDate",
-                   "scientificName", "basisOfRecord", "coordinateUncertaintyInMeters", "institutionCode")
+                   "scientificName", "basisOfRecord", "coordinateUncertaintyInMeters", "institutionCode",
+                   "lifeStage")
   
   #rgbif
   gbif <- occ_search(scientificName = binomial,
@@ -21,7 +23,8 @@ get_records <- function(binomial){
   
   gbif_df <- gbif$data %>% 
     dplyr::select(decimalLongitude, decimalLatitude, year, month, eventDate, 
-           scientificName, basisOfRecord, coordinateUncertaintyInMeters, institutionCode)
+           scientificName, basisOfRecord, coordinateUncertaintyInMeters, institutionCode,
+           lifeStage)
   
   total <- rbind(gbif_df, idig) %>% 
     filter(!is.na(year)) %>% 
