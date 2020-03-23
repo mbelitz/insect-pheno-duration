@@ -37,7 +37,7 @@ get_records <- function(binomial){
   total <- total %>% 
     mutate(decade = floor(year/10)*10) %>% 
     mutate(lon_bin = floor(decimalLongitude/1)*1) %>% 
-    mutate(lat_bin = floor(decimalLatitude/1*1))
+    mutate(lat_bin = floor(decimalLatitude/1)*1)
   
   return(total)
 }
