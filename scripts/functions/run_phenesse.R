@@ -121,8 +121,13 @@ run_phenesse <- function(plt_summary_output, minimum_obs, earliest_year, last_ye
   df <- df %>% 
     filter(year >= earliest_year & year <= last_year) 
   
+  # filter to only include one observation per cell per year per day
+  df2 <- df %>% 
+    group_by(doy, id_cells, year) %>% 
+    slice(1)
+
   # count number of records for each cell x year combination
-  num_of_records <- df %>% 
+  num_of_records <- df2 %>% 
     group_by(year, id_cells) %>% 
     summarise(count = n())
   
@@ -131,7 +136,7 @@ run_phenesse <- function(plt_summary_output, minimum_obs, earliest_year, last_ye
     as.data.frame()
   
   # remove cell, year combinations that do not have enough records
-  enough_records <- left_join(df, not_enough_data, by = c("year", "id_cells")) %>% 
+  enough_records <- left_join(df2, not_enough_data, by = c("year", "id_cells")) %>% 
     filter(!is.na(count)) %>% 
     filter(doy != 1) %>% 
     select(-geometry.x, -geometry.y)
@@ -143,12 +148,12 @@ run_phenesse <- function(plt_summary_output, minimum_obs, earliest_year, last_ye
   
   # lapply functions
   onsetestimator <- function(x){
-    onset <- tryCatch(weib_percentile_dl(observations = x$doy, iterations = 500, percentile = 0), error = function(e) NA)
+    onset <- tryCatch(weib_percentile_dl(observations = x$doy, percentile = 0), error = function(e) NA)
     return(onset)
   }
  
   offsetestimator <- function(x){
-    offset <- tryCatch(weib_percentile_dl(observations = x$doy, iterations = 500, percentile = 1.0), error = function(e) NA)
+    offset <- tryCatch(weib_percentile_dl(observations = x$doy, percentile = 1.0), error = function(e) NA)
     return(offset)
   }
   
