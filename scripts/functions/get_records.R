@@ -16,10 +16,10 @@ get_records <- function(binomial){
   #rgbif
   gbif <- occ_search(scientificName = binomial,
                      hasCoordinate = TRUE, country = "US",
+                     institutionCode = "iNaturalist",
                      limit = 200000)
   
   gbif_df <- gbif$data %>% 
-    dplyr::filter(institutionCode == "iNaturalist") %>% 
     dplyr::select(decimalLongitude, decimalLatitude, year, month, eventDate, 
            scientificName, basisOfRecord, coordinateUncertaintyInMeters, institutionCode)
   
