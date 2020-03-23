@@ -8,12 +8,10 @@ get_records <- function(binomial){
                             fields = c("data.dwc:decimalLongitude", "data.dwc:decimalLatitude",
                                        "data.dwc:year", "data.dwc:month", "data.dwc:eventDate",
                                        "data.dwc:scientificName", "data.dwc:basisOfRecord", 
-                                       "data.dwc:coordinateUncertaintyInMeters", "data.dwc:institutionCode",
-                                       "data.dwc::lifeStage")) 
+                                       "data.dwc:coordinateUncertaintyInMeters", "data.dwc:institutionCode")) 
 
   names(idig) <- c("decimalLongitude", "decimalLatitude", "year", "month", "eventDate",
-                   "scientificName", "basisOfRecord", "coordinateUncertaintyInMeters", "institutionCode",
-                   "lifeStage")
+                   "scientificName", "basisOfRecord", "coordinateUncertaintyInMeters", "institutionCode")
   
   #rgbif
   gbif <- occ_search(scientificName = binomial,
