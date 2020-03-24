@@ -21,8 +21,7 @@ get_records <- function(binomial){
   
   gbif_df <- gbif$data %>% 
     dplyr::select(decimalLongitude, decimalLatitude, year, month, eventDate, 
-           scientificName, basisOfRecord, coordinateUncertaintyInMeters, institutionCode,
-           lifeStage)
+           scientificName, basisOfRecord, coordinateUncertaintyInMeters, institutionCode)
   
   total <- rbind(gbif_df, idig) %>% 
     filter(!is.na(year)) %>% 
