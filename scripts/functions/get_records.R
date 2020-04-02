@@ -1,6 +1,7 @@
 library(rgbif)
 library(ridigbio)
-library(dplyr)
+library(tidyverse)
+
 
 get_records <- function(binomial){
 
