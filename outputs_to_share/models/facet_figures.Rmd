@@ -1,0 +1,169 @@
+---
+title: "Duration Figures"
+author: "Michael W Belitz"
+date: "4/21/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE, echo=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(ggforce)
+library(sf)
+library(tidyverse)
+```
+```{r readData, warning=FALSE, echo=FALSE, message=FALSE}
+## Model Temp and Precip for estimates
+
+dur <- read.csv("c:/Users/Mike/Documents/UF2/insect-pheno-duration/phenesse_outputs/total/total_duration_allspp.csv", stringsAsFactors = FALSE)
+
+
+# make grid cells
+na <-  rnaturalearth::ne_countries(country = c("United States of America", "Mexico", "Canada"),
+                                     returnclass = "sp")
+na_map <-  rnaturalearth::ne_countries(country = c("United States of America", "Mexico", "Canada"),
+                                   returnclass = "sf")
+
+# make grid over na
+na_map <- st_transform(na_map, crs = "+proj=aea +lat_1=20 +lat_2=60 +lat_0=40 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs ")
+grids <-  st_make_grid(na_map, cellsize = c(100000, 100000))
+grids_sf <-  mutate(st_sf(geometry = grids), id_cells = 1:n())
+
+coords <- st_centroid(grids) %>% 
+  st_coordinates() %>% 
+  data.frame()
+
+grid_coords <- bind_cols(grids_sf, coords) %>% 
+  st_set_geometry(NULL)
+
+total_duration <- left_join(dur, grid_coords) %>% 
+  mutate(lon = X, lat = Y) %>% 
+  mutate(OS = paste(Order, scientificName, sep = ":"))
+```
+
+```{r f1, warning=FALSE, echo=FALSE,fig.width=9, fig.height=10}
+ggplot(total_duration) + 
+    geom_point(aes(x = onset, y = lat, shape = as.character(year)), color = "purple", alpha = 0.25) +
+    geom_point(aes(x = offset, y = lat, shape = as.character(year)),color = "black", alpha = 0.25) +
+    geom_smooth(aes(x = onset, y = lat), method = "lm",color = "purple") +
+    geom_smooth(aes(x = offset, y = lat),  method = "lm", color = "black") +
+    scale_shape_discrete(name = "Year") +
+    labs(x = "Onset & Offset", y = "Latitude (m)") +
+    scale_color_viridis_d(option = "plasma") +
+    theme_bw()  +
+    facet_wrap_paginate(~OS, scales = "free",
+                        nrow = 6, ncol =3, page = 1)
+
+```
+
+```{r f2, warning=FALSE, echo=FALSE,fig.width=9, fig.height=10}
+ggplot(total_duration) + 
+    geom_point(aes(x = onset, y = lat, shape = as.character(year)), color = "purple", alpha = 0.25) +
+    geom_point(aes(x = offset, y = lat, shape = as.character(year)),color = "black", alpha = 0.25) +
+    geom_smooth(aes(x = onset, y = lat), method = "lm",color = "purple") +
+    geom_smooth(aes(x = offset, y = lat),  method = "lm", color = "black") +
+    scale_shape_discrete(name = "Year") +
+    labs(x = "Onset & Offset", y = "Latitude (m)") +
+    scale_color_viridis_d(option = "plasma") +
+    theme_bw()  +
+    facet_wrap_paginate(~OS, scales = "free",
+                        nrow = 6, ncol =3, page = 2)
+```
+
+```{r f3, warning=FALSE, echo=FALSE, fig.width=9, fig.height=10}
+ggplot(total_duration) + 
+    geom_point(aes(x = onset, y = lat, shape = as.character(year)), color = "purple", alpha = 0.25) +
+    geom_point(aes(x = offset, y = lat, shape = as.character(year)),color = "black", alpha = 0.25) +
+    geom_smooth(aes(x = onset, y = lat), method = "lm",color = "purple") +
+    geom_smooth(aes(x = offset, y = lat),  method = "lm", color = "black") +
+    scale_shape_discrete(name = "Year") +
+    labs(x = "Onset & Offset", y = "Latitude (m)") +
+    scale_color_viridis_d(option = "plasma") +
+    theme_bw()  +
+    facet_wrap_paginate(~OS, scales = "free",
+                        nrow = 6, ncol =3, page = 3)
+```
+
+```{r f4, warning=FALSE, echo=FALSE, fig.width=9, fig.height=10}
+ggplot(total_duration) + 
+    geom_point(aes(x = onset, y = lat, shape = as.character(year)), color = "purple", alpha = 0.25) +
+    geom_point(aes(x = offset, y = lat, shape = as.character(year)),color = "black", alpha = 0.25) +
+    geom_smooth(aes(x = onset, y = lat), method = "lm",color = "purple") +
+    geom_smooth(aes(x = offset, y = lat),  method = "lm", color = "black") +
+    scale_shape_discrete(name = "Year") +
+    labs(x = "Onset & Offset", y = "Latitude (m)") +
+    scale_color_viridis_d(option = "plasma") +
+    theme_bw()  +
+    facet_wrap_paginate(~OS, scales = "free",
+                        nrow = 6, ncol =3, page = 4)
+```
+
+```{r f5, warning=FALSE, echo=FALSE, fig.width=9, fig.height=10}
+ggplot(total_duration) + 
+    geom_point(aes(x = onset, y = lat, shape = as.character(year)), color = "purple", alpha = 0.25) +
+    geom_point(aes(x = offset, y = lat, shape = as.character(year)),color = "black", alpha = 0.25) +
+    geom_smooth(aes(x = onset, y = lat), method = "lm",color = "purple") +
+    geom_smooth(aes(x = offset, y = lat),  method = "lm", color = "black") +
+    scale_shape_discrete(name = "Year") +
+    labs(x = "Onset & Offset", y = "Latitude (m)") +
+    scale_color_viridis_d(option = "plasma") +
+    theme_bw()  +
+    facet_wrap_paginate(~OS, scales = "free",
+                        nrow = 6, ncol =3, page = 5)
+```
+
+```{r f6, warning=FALSE, echo=FALSE, fig.width=9, fig.height=10}
+ggplot(total_duration) + 
+    geom_point(aes(x = onset, y = lat, shape = as.character(year)), color = "purple", alpha = 0.25) +
+    geom_point(aes(x = offset, y = lat, shape = as.character(year)),color = "black", alpha = 0.25) +
+    geom_smooth(aes(x = onset, y = lat), method = "lm",color = "purple") +
+    geom_smooth(aes(x = offset, y = lat),  method = "lm", color = "black") +
+    scale_shape_discrete(name = "Year") +
+    labs(x = "Onset & Offset", y = "Latitude (m)") +
+    scale_color_viridis_d(option = "plasma") +
+    theme_bw()  +
+    facet_wrap_paginate(~OS, scales = "free",
+                        nrow = 6, ncol =3, page = 6)
+```
+
+```{r f7, warning=FALSE, echo=FALSE, fig.width=9, fig.height=10}
+ggplot(total_duration) + 
+    geom_point(aes(x = onset, y = lat, shape = as.character(year)), color = "purple", alpha = 0.25) +
+    geom_point(aes(x = offset, y = lat, shape = as.character(year)),color = "black", alpha = 0.25) +
+    geom_smooth(aes(x = onset, y = lat), method = "lm",color = "purple") +
+    geom_smooth(aes(x = offset, y = lat),  method = "lm", color = "black") +
+    scale_shape_discrete(name = "Year") +
+    labs(x = "Onset & Offset", y = "Latitude (m)") +
+    scale_color_viridis_d(option = "plasma") +
+    theme_bw()  +
+    facet_wrap_paginate(~OS, scales = "free",
+                        nrow = 6, ncol =3, page = 7)
+```
+
+```{r f8, warning=FALSE, echo=FALSE, fig.width=9, fig.height=10}
+ggplot(total_duration) + 
+    geom_point(aes(x = onset, y = lat, shape = as.character(year)), color = "purple", alpha = 0.25) +
+    geom_point(aes(x = offset, y = lat, shape = as.character(year)),color = "black", alpha = 0.25) +
+    geom_smooth(aes(x = onset, y = lat), method = "lm",color = "purple") +
+    geom_smooth(aes(x = offset, y = lat),  method = "lm", color = "black") +
+    scale_shape_discrete(name = "Year") +
+    labs(x = "Onset & Offset", y = "Latitude (m)") +
+    scale_color_viridis_d(option = "plasma") +
+    theme_bw()  +
+    facet_wrap_paginate(~OS, scales = "free",
+                        nrow = 6, ncol =3, page = 8)
+```
+
+```{r f9, warning=FALSE, echo=FALSE, fig.width=9, fig.height=10}
+ggplot(total_duration) + 
+    geom_point(aes(x = onset, y = lat, shape = as.character(year)), color = "purple", alpha = 0.25) +
+    geom_point(aes(x = offset, y = lat, shape = as.character(year)),color = "black", alpha = 0.25) +
+    geom_smooth(aes(x = onset, y = lat), method = "lm",color = "purple") +
+    geom_smooth(aes(x = offset, y = lat),  method = "lm", color = "black") +
+    scale_shape_discrete(name = "Year") +
+    labs(x = "Onset & Offset", y = "Latitude (m)") +
+    scale_color_viridis_d(option = "plasma") +
+    theme_bw()  +
+    facet_wrap_paginate(~OS, scales = "free",
+                        nrow = 6, ncol =3, page = 9)
+```
