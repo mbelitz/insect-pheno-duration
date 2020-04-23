@@ -38,16 +38,12 @@ plt_summary = function(na_map = rnaturalearth::ne_countries(country = c("United 
   # add grid cell id
   grids = mutate(st_sf(geometry = grids), id_cells = 1:n())
   # convert lat/long to have the same crs
-  gazette_idig <- 
-  dat <- dat %>% 
-    dplyr::rename(long = decimalLongitude) %>% 
-    dplyr::rename(lat = decimalLatitude)
   
-  if(!(grepl("^long", names(dat)[1], ignore.case = TRUE) &
-       grepl("^lat", names(dat)[2], ignore.case = TRUE))){
+  if(!(grepl("^decimalLongitude", names(dat)[1], ignore.case = TRUE) &
+       grepl("^decimalLatitude", names(dat)[2], ignore.case = TRUE))){
     stop("The first two columns of dat must be longitude and latitude, respectively.")
   }
-
+  
   dat = st_transform(st_as_sf(dat, coords = 1:2, crs = 4326), 
                      crs = st_crs(na_map)$proj4string)
   # which cell each point falls in?
@@ -121,7 +117,7 @@ plt_summary = function(na_map = rnaturalearth::ne_countries(country = c("United 
 
 run_phenesse <- function(df, minimum_obs = 10, 
                          earliest_year = 2015, last_year = 2019, n_item = 500,
-                         onset_perct = 0, offset_perct = 1, num_cores){
+                         onset_perct = 0, offset_perct = 1, num_cores = 30){
   # make Daijiang function output into dataframe
   df <- df
   
@@ -247,3 +243,22 @@ get_records <- function(binomial){
   
   return(total)
 }
+
+#' Function to combine data from gazetteer data and downloaded data for individual species
+#' parameters are simply binomial
+
+combine_data <- function(gbif_download, binomial){
+  dd <- gbif_download %>% 
+    dplyr::filter(binomial == binomial)
+  
+  gbif <- gbif_cleaned %>% 
+    dplyr::filter(binomial == binomial)
+  
+  idig <- idig_cleaned %>% 
+    dplyr::filter(binomial == binomial)
+  
+  total <- rbind(dd, gbif, idig)
+  
+  return(total)
+}
+
