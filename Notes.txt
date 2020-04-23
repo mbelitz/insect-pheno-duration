@@ -1,0 +1,7 @@
+We are downloading annual temp and prec from DAYmet at a 1km by 1 km resolution. 
+
+Annual averages are provided for min and max temp and vapor pressure and annual totals are provided for the precipitation variables. 
+
+We downloaded annual max temp and annual total precip
+
+https://daac.ornl.gov/orders/63e1d8688f7c9a0f3c93670981eee948/Daymet_V3_Annual_Climatology/guide/Daymet_V3_Annual_Climatology.html
