@@ -1,0 +1,98 @@
+---
+title: "LMM Results"
+author: "Michael W Belitz"
+date: "4/28/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r libraries, echo=FALSE, warning=FALSE, message=FALSE}
+library(lme4)
+library(lmerTest)
+library(dplyr)
+library(effects)
+library(ggplot2)
+
+model_df <- read.csv(file = "data/model_dfs/duration_climate_population_data.csv",
+                     stringsAsFactors = FALSE)
+
+model_df2 <- model_df %>% 
+  na.omit() %>% 
+  mutate(temp = scale(temp),
+         prec = scale(prec),
+         pop = scale(pop))
+
+```
+
+
+## Onset Model
+
+```{r onset, echo=TRUE, warning=FALSE}
+m3on <- lmer(onset ~ temp * pop + prec * temp + (1|id_cells) + (1|scientificName) +
+               (0 + temp | scientificName) + (0 + pop | scientificName) + (0 + prec | scientificName),
+             data = model_df2)
+
+summary(m3on)
+
+MuMIn::r.squaredGLMM(m3on)
+```
+
+# Interaction between temp and prec density
+
+```{r interaction, echo=FALSE}
+# make interaction plot
+
+tempq <- quantile(model_df2$temp, probs = c(0,0.25,0.5,0.75,1))
+tempq <- round(tempq, 2)
+
+inter_q <- effect("temp*prec", m3on)
+
+inter_q_df <- as.data.frame(inter_q)
+
+#Create factors of the different variables in your interaction: 
+
+inter_q_df$temp<-factor(inter_q_df$temp,
+                          
+                          labels=c("0%", "25%", "50%", "75%", "100%"))
+
+interaction <- ggplot(data=inter_q_df, aes(x=prec, y=fit, group=temp))+
+  geom_line(size = 2, aes(color=temp))+
+  ylab("Onset")+
+  xlab("Precipitation")+
+  theme_bw()+ #deleting the gray background 
+  ggtitle("Temp * Prec Interaction") #adding a title! 
+
+interaction
+```
+
+## Offset Model
+```{r offset, echo=TRUE}
+m3off <- lmer(offset ~ temp * pop + prec * temp + (1|id_cells) + (1|scientificName) +
+               (0 + temp | scientificName) + (0 + pop | scientificName) + (0 + prec | scientificName),
+             data = model_df2)
+
+summary(m3off)
+
+MuMIn::r.squaredGLMM(m3off)
+
+```
+
+## Duration Model
+
+```{r duration, echo=TRUE}
+## Duration 
+
+### Now try offset
+
+m3dur <- lmer(duration ~ temp * pop + prec * temp + (1|id_cells) + (1|scientificName) +
+                (0 + temp | scientificName) + (0 + pop | scientificName) + (0 + prec | scientificName),
+              data = model_df2)
+
+summary(m3dur)
+
+MuMIn::r.squaredGLMM(m3dur)
+```
+
