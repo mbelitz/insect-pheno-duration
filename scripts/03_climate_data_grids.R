@@ -47,8 +47,21 @@ t3 <- raster("data/daymet/daymet_v3_tmax_annavg_2017_na.tif")
 t4 <- raster("data/daymet/daymet_v3_tmax_annavg_2018_na.tif")
 t5 <- raster("data/daymet/daymet_v3_tmax_annavg_2019_na.tif")
 
-rstack <- stack(p1, p2, p3, p4, p5, t1, t2, t3, t4, t5)
-rstack_proj <- projectRaster(from = rstack, crs = crs(grids_sf), res = 25000)
+ps1 <- raster("data/daymet/monthly/gis_output/bio15_2015.tif")
+ps2 <- raster("data/daymet/monthly/gis_output/bio15_2016.tif")
+ps3 <- raster("data/daymet/monthly/gis_output/bio15_2017.tif")
+ps4 <- raster("data/daymet/monthly/gis_output/bio15_2018.tif")
+ps5 <- raster("data/daymet/monthly/gis_output/bio15_2019.tif")
+
+ts1 <- raster("data/daymet/monthly/gis_output/bio4_2015.tif")
+ts2 <- raster("data/daymet/monthly/gis_output/bio4_2016.tif")
+ts3 <- raster("data/daymet/monthly/gis_output/bio4_2017.tif")
+ts4 <- raster("data/daymet/monthly/gis_output/bio4_2018.tif")
+ts5 <- raster("data/daymet/monthly/gis_output/bio4_2019.tif")
+
+rstack <- stack(p1, p2, p3, p4, p5, t1, t2, t3, t4, t5,
+                ps1, ps2, ps3, ps4, ps5, ts1, ts2, ts3, ts4, ts5)
+rstack_proj <- projectRaster(from = rstack, crs = crs(grids_sf), res = 10000)
 rstackdf <- as.data.frame(rstack_proj, xy = TRUE)
 rstackdf_sf <- st_as_sf(rstackdf, coords = c(x = 'x', y = 'y'),
                     crs = st_crs(rstack_proj)) %>% 
@@ -57,7 +70,7 @@ rstackdf_sf <- st_as_sf(rstackdf, coords = c(x = 'x', y = 'y'),
 rstack_join <- st_join(x = rstackdf_sf, y = grids_sf, st_intersects)
 rstack_joindf <- st_drop_geometry(rstack_join) %>% 
   rename(prcp_2015 = 1, prcp_2016 = 2, prcp_2017 = 3, prcp_2018 = 4, prcp_2019 = 5,
-         tmp_2015 = 6, tmp_2016 = 7, tmp_2017 = 8, tmp_2018 = 9, tmp_2019 = 10, id_cells = 11) %>% 
+         tmp_2015 = 6, tmp_2016 = 7, tmp_2017 = 8, tmp_2018 = 9, tmp_2019 = 10) %>% 
   as.data.frame()
 
 clim_df <- rstack_joindf %>% 
@@ -71,8 +84,22 @@ clim_df <- rstack_joindf %>%
             tmp_2016 = mean(tmp_2016),
             tmp_2017 = mean(tmp_2017),
             tmp_2018 = mean(tmp_2018),
-            tmp_2019 = mean(tmp_2019))
+            tmp_2019 = mean(tmp_2019),
+            bio15_2015 = mean(bio15_2015),
+            bio15_2016 = mean(bio15_2016),
+            bio15_2017 = mean(bio15_2017),
+            bio15_2018 = mean(bio15_2018),
+            bio15_2019 = mean(bio15_2019),
+            bio4_2015 = mean(bio4_2015),
+            bio4_2016 = mean(bio4_2016),
+            bio4_2017 = mean(bio4_2017),
+            bio4_2018 = mean(bio4_2018),
+            bio4_2019 = mean(bio4_2019))
 
 clim_grid <- left_join(grid_coords, clim_df)
+
+ggplot() +
+  geom_tile(clim_grid, mapping = aes(x = X, y = Y, fill = bio15_2019)) +
+  scale_fill_viridis_c()
 
 write.csv(clim_grid, file = "data/gridded/clim_grid.csv", row.names = FALSE)
