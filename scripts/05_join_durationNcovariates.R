@@ -1,35 +1,12 @@
-library(raster)
 library(dplyr)
 library(sf)
 library(ggplot2)
-library(raster)
 
-## Model Temp and Precip for estimates
+total_duration <- read.csv("phenesse_outputs/total/total_duration_V2_withCoordinates.csv", stringsAsFactors = F)
 
-dur <- read.csv("phenesse_outputs/total/total_duration_id_cellFIX.csv", stringsAsFactors = FALSE)
-
-
-# make grid cells
-na <-  rnaturalearth::ne_countries(country = c("United States of America", "Mexico", "Canada"),
-                                   returnclass = "sp")
-na_map <-  rnaturalearth::ne_countries(country = c("United States of America", "Mexico", "Canada"),
-                                       returnclass = "sf")
-
-# make grid over na
-na_map <- st_transform(na_map, crs = "+proj=aea +lat_1=20 +lat_2=60 +lat_0=40 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs ")
-grids <-  st_make_grid(na_map, cellsize = c(100000, 100000))
-grids_sf <-  mutate(st_sf(geometry = grids), id_cells = 1:n())
-
-coords <- st_centroid(grids) %>% 
-  st_coordinates() %>% 
-  data.frame()
-
-grid_coords <- bind_cols(grids_sf, coords) %>% 
-  st_set_geometry(NULL)
-
-total_duration <- left_join(dur, grid_coords) %>% 
-  mutate(lon = X, lat = Y) %>% 
-  mutate(OS = paste(Order, scientificName, sep = ":"))
+td <- total_duration %>% 
+  mutate(XX = round(X, digits = 0),
+         YY = round(Y, digits = 0))
 
 # read in climate data
 
@@ -37,11 +14,21 @@ clim <- read.csv("data/gridded/clim_grid.csv", stringsAsFactors = FALSE)
 
 pop <- read.csv("data/gridded/pop_grid.csv", stringsAsFactors = FALSE)
 
+cd <- clim %>% 
+  mutate(XX = round(X, digits = 0),
+         YY = round(Y, digits = 0))
+
+pd <- pop %>% 
+  mutate(XX = round(X, digits = 0),
+         YY = round(Y, digits = 0))
+
 ## join to make a super table
 
-dur_clim <- left_join(total_duration, clim, by = "id_cells")
+dur_clim <- left_join(td, cd, by = c("XX", "YY"))
+dur_vars <- left_join(dur_clim, pd, by = c("XX", "YY")) %>% 
+  distinct()
 
-total_dur_clim <- dur_clim %>% 
+total_dur_vars <- dur_vars %>% 
   mutate(prec = case_when(year == 2015 ~ prcp_2015,
                           year == 2016 ~ prcp_2016,
                           year == 2017 ~ prcp_2017,
@@ -51,13 +38,21 @@ total_dur_clim <- dur_clim %>%
                           year == 2016 ~ tmp_2016,
                           year == 2017 ~ tmp_2017,
                           year == 2018 ~ tmp_2018,
-                          year == 2019 ~ tmp_2019))
+                          year == 2019 ~ tmp_2019)) %>% 
+  mutate(bio4 = case_when(year == 2015 ~ bio4_2015,
+                          year == 2016 ~ bio4_2016,
+                          year == 2017 ~ bio4_2017,
+                          year == 2018 ~ bio4_2018,
+                          year == 2019 ~ bio4_2019)) %>% 
+  mutate(bio15 = case_when(year == 2015 ~ bio15_2015,
+                           year == 2016 ~ bio15_2016,
+                           year == 2017 ~ bio15_2017,
+                           year == 2018 ~ bio15_2018,
+                           year == 2019 ~ bio15_2019))
 
-total_dur_clim <- total_dur_clim %>% 
+total_dur_vars <- total_dur_vars %>% 
   dplyr::select(onset, onset_low, onset_high, rowname, year, offset, offset_low, offset_high, 
-                duration, scientificName, Order, id_cells, lon, lat, OS, prec, temp)
+                duration, scientificName, Order, lon, lat, OS, prec, temp,
+                bio4, bio15, pop)
 
-total_dur_clim_pop <- left_join(total_dur_clim, pop) %>% 
-  dplyr::select(-X, -Y)
-
-write.csv(total_dur_clim_pop, file = "data/model_dfs/duration_climate_population_data.csv", row.names = FALSE)
+write.csv(total_dur_vars, file = "data/model_dfs/duration_climate_population_data.csv", row.names = FALSE)
