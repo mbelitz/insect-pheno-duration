@@ -1,0 +1,147 @@
+---
+title: "Insect Duration Models"
+author: "Michael W Belitz"
+date: "5/13/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE, echo=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r libraries, echo=FALSE, warning=FALSE, message=FALSE}
+library(lme4)
+library(lmerTest)
+library(dplyr)
+library(effects)
+library(ggplot2)
+library(car)
+```
+
+## Number of species with at least 5 comparable cells per Order
+
+```{r, fivecells, echo = FALSE, message=FALSE}
+model_df <- read.csv(file = "data/model_dfs/duration_climate_population_data.csv",
+                     stringsAsFactors = FALSE) 
+
+id_cells <- model_df %>% 
+  group_by(lon, lat) %>% 
+  summarise(count = n()) %>% 
+  tibble::rownames_to_column() %>% 
+  rename(id_cells = rowname)
+
+model_df <- left_join(model_df, id_cells)
+
+model_df2 <- model_df %>% 
+  na.omit() %>% 
+  mutate(temp = scale(temp),
+         prec = scale(prec),
+         pop = scale(log10(pop)),
+         prec_seas = scale(bio15),
+         temp_seas = scale(bio4),
+         onsetci = onset_high - onset_low,
+         offsetci = offset_high - offset_low)
+
+datadens <- model_df2 %>% 
+  group_by(scientificName, Order) %>% 
+  summarise(count = n())
+
+has_5_cells <- filter(datadens, count >= 5) %>% 
+  filter (scientificName != "Apis mellifera")#300 species 
+
+ggplot(has_5_cells, aes(x = Order)) + 
+  geom_bar(stat = "count", aes (fill = Order)) +
+  labs(y = "Number of Species") +
+  ggtitle("At Least 5 Comparable Cells - 300 total spp") +
+  theme_bw()
+```
+
+# Number of species with at least 10  comparable  cells per Order
+
+Because the proportion of number of Leps per all other orders didn't increase with having at least 10 comparable cells, I decided to only use species with at least 10 comparable cells for the analyses. 
+
+```{r, tencells, echo=FALSE, message=FALSE}
+
+has_10_cells <- filter(datadens, count >= 10) %>% 
+  filter (scientificName != "Apis mellifera") # 217
+
+ggplot(has_10_cells, aes(x = Order)) + 
+  geom_bar(stat = "count", aes (fill = Order)) +
+  labs(y = "Number of Species") +
+  ggtitle("At Least 10 Comparable Cells - 217 total spp") +
+  theme_bw()
+
+```
+
+
+# Model Results
+
+## Onset
+Top model
+```{r onset, echo=TRUE}
+m9on <- lmer(onset ~ temp + pop + prec + prec_seas + temp_seas + temp:pop +
+               (1|id_cells) + (1|scientificName) +
+               (0 + temp | scientificName) + 
+               (0 + pop | scientificName) + 
+               (0 + prec | scientificName) +
+               (0 + temp_seas | scientificName) + 
+               (0 + prec_seas | scientificName) + 
+               (0 + temp:pop | scientificName),
+             data = model_df2, REML = FALSE, 
+             lmerControl(optimizer = "bobyqa"))
+
+summary(m9on) 
+
+plot(effects::effect("temp:pop", m9on), multiline = T)
+MuMIn::r.squaredGLMM(m9on)
+car::vif(m9on)
+class(m9on) = "lmerMod"
+performance::check_collinearity(m9on)
+performance::model_performance(m9on)
+```
+
+## Offset
+Top model
+```{r offset, echo=TRUE}
+m7off <- lmer(offset ~ temp + pop + prec + prec_seas + temp_seas + temp:pop +
+                (1|id_cells) + (1|scientificName) +
+                (0 + temp | scientificName) + 
+                (0 + pop | scientificName) + 
+                (0 + prec | scientificName) +
+                (0 + temp_seas | scientificName) + 
+                (0 + prec_seas | scientificName) +
+                (0 + temp:pop | scientificName),
+              data = model_df2, REML = FALSE, 
+              lmerControl(optimizer = "bobyqa"))
+
+summary(m7off) 
+
+plot(effects::effect("temp:pop", m7off), multiline = T)
+MuMIn::r.squaredGLMM(m7off)
+car::vif(m7off)
+class(m7off) = "lmerMod"
+performance::check_collinearity(m7off)
+performance::model_performance(m7off)
+```
+
+## Duration
+Top model
+```{r duration, echo=TRUE}
+m6dur <- lmer(duration ~ temp + pop + temp_seas + temp:pop + prec_seas + prec +
+                (1|id_cells) + (1|scientificName) +
+                (0 + temp | scientificName) + 
+                (0 + pop | scientificName) +
+                (0 + prec_seas | scientificName) +
+                (0 + temp:pop | scientificName) +
+                (0 + temp_seas | scientificName) +
+                (0 + prec | scientificName),
+              data = model_df2, REML = FALSE, 
+              lmerControl(optimizer = "bobyqa"))
+
+summary(m6dur) 
+plot(effects::effect("temp:pop", m6dur), multiline = T)
+MuMIn::r.squaredGLMM(m6dur)
+car::vif(m6dur)
+performance::check_collinearity(m6dur)
+performance::model_performance(m6dur)
+```
