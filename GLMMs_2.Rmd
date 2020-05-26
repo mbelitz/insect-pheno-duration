@@ -79,25 +79,25 @@ ggplot(has_10_cells, aes(x = Order)) +
 ## Onset
 Top model
 ```{r onset, echo=TRUE}
-m9on <- lmer(onset ~ temp + pop + prec + prec_seas + temp_seas + temp:pop +
+m10on <- lmer(onset ~ temp + pop + prec + prec_seas + temp_seas + temp:prec +
                (1|id_cells) + (1|scientificName) +
                (0 + temp | scientificName) + 
                (0 + pop | scientificName) + 
                (0 + prec | scientificName) +
                (0 + temp_seas | scientificName) + 
                (0 + prec_seas | scientificName) + 
-               (0 + temp:pop | scientificName),
+               (0 + temp:prec | scientificName),
              data = model_df2, REML = FALSE, 
              lmerControl(optimizer = "bobyqa"))
 
-summary(m9on) 
+summary(m10on) 
 
-plot(effects::effect("temp:pop", m9on), multiline = T)
-MuMIn::r.squaredGLMM(m9on)
-car::vif(m9on)
-class(m9on) = "lmerMod"
-performance::check_collinearity(m9on)
-performance::model_performance(m9on)
+plot(effects::effect("temp:prec", m10on), multiline = T)
+MuMIn::r.squaredGLMM(m10on)
+car::vif(m10on)
+class(m10on) = "lmerMod"
+performance::check_collinearity(m10on)
+performance::model_performance(m10on)
 ```
 
 ## Offset
@@ -127,21 +127,22 @@ performance::model_performance(m7off)
 ## Duration
 Top model
 ```{r duration, echo=TRUE}
-m6dur <- lmer(duration ~ temp + pop + temp_seas + temp:pop + prec_seas + prec +
+m7dur <- lmer(duration ~ temp + pop + temp_seas + temp:prec + prec_seas + prec +
                 (1|id_cells) + (1|scientificName) +
                 (0 + temp | scientificName) + 
                 (0 + pop | scientificName) +
                 (0 + prec_seas | scientificName) +
-                (0 + temp:pop | scientificName) +
+                (0 + temp:prec | scientificName) +
                 (0 + temp_seas | scientificName) +
                 (0 + prec | scientificName),
               data = model_df2, REML = FALSE, 
               lmerControl(optimizer = "bobyqa"))
 
-summary(m6dur) 
-plot(effects::effect("temp:pop", m6dur), multiline = T)
-MuMIn::r.squaredGLMM(m6dur)
-car::vif(m6dur)
-performance::check_collinearity(m6dur)
-performance::model_performance(m6dur)
+summary(m7dur) 
+
+plot(effects::effect("temp:prec", m7dur), multiline = T)
+MuMIn::r.squaredGLMM(m7dur)
+car::vif(m7dur)
+performance::check_collinearity(m7dur)
+performance::model_performance(m7dur)
 ```
