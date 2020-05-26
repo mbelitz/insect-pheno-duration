@@ -7,3 +7,10 @@ imageant.exe
 annotated_sets
 map_outputs
 data
+GLMMs.html
+GLMMS_25km_V2.Rmd
+GLMMS_25km_V2.html
+GLMMs_2.Rmd
+GLMMs_2.html
+models_traits.Rmd
+model_explore_stab2.R
