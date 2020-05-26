@@ -56,6 +56,21 @@ model_df2 <- model_df2 %>%
 
 unique(model_df2$scientificName) %>% length()
 
+# plot where the data is
+# make grid cells
+na <-  rnaturalearth::ne_countries(country = c("United States of America", "Mexico", "Canada"),
+                                   returnclass = "sp")
+na_map <-  rnaturalearth::ne_countries(country = c("United States of America", "Mexico", "Canada"),
+                                       returnclass = "sf")
+
+# make grid over na
+na_map <- st_transform(na_map, crs = "+proj=aea +lat_1=20 +lat_2=60 +lat_0=40 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs ")
+
+
+ggplot () +
+  geom_tile(model_df2, mapping = aes(x = lon, y = lat, fill = duration)) +
+  scale_fill_viridis_c()
+
 # onset models
 
 m1on <- lmer(onset ~ temp + pop + prec + prec_seas + temp_seas + 
@@ -156,9 +171,23 @@ m9on <- lmer(onset ~ temp + pop + prec + prec_seas + temp_seas + temp:pop +
 
 summary(m9on) 
 
+m10on <- lmer(onset ~ temp + pop + prec + prec_seas + temp_seas + temp:prec +
+               (1|id_cells) + (1|scientificName) +
+               (0 + temp | scientificName) + 
+               (0 + pop | scientificName) + 
+               (0 + prec | scientificName) +
+               (0 + temp_seas | scientificName) + 
+               (0 + prec_seas | scientificName) + 
+               (0 + temp:prec | scientificName),
+             data = model_df2, REML = FALSE, 
+             lmerControl(optimizer = "bobyqa"))
+
+summary(m10on) 
+
+
 # model rank top models 
-MuMIn::AICc(m1on, m2on, m3on, m4on, m5on, m6on, m7on, m8on, m9on)
-MuMIn::Weights(AIC(m1on, m2on, m3on, m4on, m5on, m6on, m7on, m8on, m9on))
+MuMIn::AICc(m1on, m2on, m3on, m4on, m5on, m6on, m7on, m8on, m9on, m10on)
+MuMIn::Weights(AIC(m1on, m2on, m3on, m4on, m5on, m6on, m7on, m8on, m9on, m10on))
 
 summary(m9on)
 MuMIn::r.squaredGLMM(m9on)
@@ -252,9 +281,23 @@ m7off <- lmer(offset ~ temp + pop + prec + prec_seas + temp_seas + temp:pop +
 
 summary(m7off) 
 
+m8off <- lmer(offset ~ temp + pop + prec + prec_seas + temp_seas + temp:prec +
+                (1|id_cells) + (1|scientificName) +
+                (0 + temp | scientificName) + 
+                (0 + pop | scientificName) + 
+                (0 + prec | scientificName) +
+                (0 + temp_seas | scientificName) + 
+                (0 + prec_seas | scientificName) +
+                (0 + temp:prec | scientificName),
+              data = model_df2, REML = FALSE, 
+              lmerControl(optimizer = "bobyqa"))
+
+summary(m8off) 
+
+
 # model rank top models 
-MuMIn::AICc(m1off, m2off, m3off, m4off, m5off, m6off, m7off)
-MuMIn::Weights(AIC(m1off, m2off, m3off, m4off, m5off, m6off, m7off))
+MuMIn::AICc(m1off, m2off, m3off, m4off, m5off, m6off, m7off, m8off)
+MuMIn::Weights(AIC(m1off, m2off, m3off, m4off, m5off, m6off, m7off, m8off))
 
 summary(m7off)
 MuMIn::r.squaredGLMM(m7off)
@@ -337,10 +380,24 @@ m6dur <- lmer(duration ~ temp + pop + temp_seas + temp:pop + prec_seas + prec +
               lmerControl(optimizer = "bobyqa"))
 
 summary(m6dur) 
+
+m7dur <- lmer(duration ~ temp + pop + temp_seas + temp:prec + prec_seas + prec +
+                (1|id_cells) + (1|scientificName) +
+                (0 + temp | scientificName) + 
+                (0 + pop | scientificName) +
+                (0 + prec_seas | scientificName) +
+                (0 + temp:prec | scientificName) +
+                (0 + temp_seas | scientificName) +
+                (0 + prec | scientificName),
+              data = model_df2, REML = FALSE, 
+              lmerControl(optimizer = "bobyqa"))
+
+summary(m7dur) 
+
 plot(effects::effect("temp:pop", m6dur), multiline = T)
 # model rank top models 
-MuMIn::AICc(m1dur, m2dur, m3dur, m4dur, m5dur, m6dur)
-MuMIn::Weights(AIC(m1dur, m2dur, m3dur, m4dur, m5dur, m6dur))
+MuMIn::AICc(m1dur, m2dur, m3dur, m4dur, m5dur, m6dur, m7dur)
+MuMIn::Weights(AIC(m1dur, m2dur, m3dur, m4dur, m5dur, m6dur, m7dur))
 
 summary(m6dur)
 MuMIn::r.squaredGLMM(m6dur)
