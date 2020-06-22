@@ -35,6 +35,24 @@ has_10_cells <- filter(datadens, count >= 10) %>%
   filter (scientificName != "Apis mellifera") # 145
 
 model_df2 <- filter(model_df2, scientificName %in% has_10_cells$scientificName)
+unique(model_df2$scientificName) %>% length() # 217 spp
+
+## remove migratory species
+mig_spp <- c("Anax junius", "Pantala flavenscens", "Pantala hymenaea", "Tramea lacerata", 
+             "Sympetrum corruptum", "Sympetrum vicinum", "Libellula pulchella", "Libellula vibrans",
+             "Tramea lacerata", "Tramea onusta", "Pantala flavescens", "Libellula quadrimaculata",
+             "Ertythrodiplax umbrata", "Epiaeschna heros", "Tramea carolina",
+             "Libellula semifasciata", "Pantala hymenaea", 
+             "Spoladea recurvalis", "Ponoquina ocola", "Plutella xylostella",
+             "Chrysodeixis includens", "Phoebis sennae", "Abaeis nicippe",
+             "Libytheana carinenta", "Agraulis vanillae", "Junonia coenia",
+             "Danaus plexippus", "Vanessa virginiensis", "Vanessa cardui",
+             "Vanessa atalanta", "Danaus gilippus", "Nymphalis antiopa", 
+             "Polygonia interrogationis", "Lerema accius")
+
+model_df2 <- filter(model_df2, !scientificName %in% mig_spp)
+unique(model_df2$scientificName) %>% length() # left with 194 spp
+
 
 # make season trait
 spp_seas <- model_df2 %>% 
@@ -69,8 +87,7 @@ mon2 <- lmer(onset ~ temp + prec + prec_seas + temp_seas +
               (0 + temp | scientificName) + 
               (0 + prec | scientificName) +
               (0 + temp_seas | scientificName) + 
-              (0 + prec_seas | scientificName) + 
-              (0 + temp:prec | scientificName),
+              (0 + prec_seas | scientificName),
             data = model_df3, REML = FALSE, 
             lmerControl(optimizer = "bobyqa"))
 
@@ -78,7 +95,7 @@ car::vif(mon)
 car::vif(mon2)
 MuMIn::Weights(AIC(mon, mon2))
 
-#step(mon)
+step(mon)
 #Model found:
 #  onset ~ temp + prec + temp_seas + (1 | id_cells) + (1 | scientificName) + 
 #  (0 + temp | scientificName) + (0 + prec | scientificName) + 
@@ -87,11 +104,12 @@ MuMIn::Weights(AIC(mon, mon2))
 
 ## final model
 
-m_on_final <- lmer(onset ~ temp + prec +  temp_seas + temp:prec +
+m_on_final <- lmer(onset ~ temp + prec +  temp_seas + 
                (1|id_cells) + (1|scientificName) +
                (0 + temp | scientificName) + 
                (0 + prec | scientificName) +
-               (0 + temp:prec | scientificName),
+               (0 + temp:prec | scientificName) +
+                temp:prec,
              data = model_df3, REML = FALSE, 
              lmerControl(optimizer = "bobyqa"))
 
@@ -164,30 +182,41 @@ m_on_traits <- lmer(onset ~ temp + prec +  temp_seas + temp:prec +
                     data = model_df4, REML = FALSE, 
                     lmerControl(optimizer = "bobyqa"))
 
-# m_on_traits_s = step(m_on_traits, reduce.random = T)
+m_on_traits_s = step(m_on_traits, reduce.random = T)
+m_on_traits_s
+# Model found:
+#   onset ~ temp + prec + temp_seas + diapause.stage + immature.habitat + 
+#   (1 | id_cells) + (1 | scientificName) + (0 + temp | scientificName) + 
+#   (0 + prec | scientificName) + (0 + temp_seas | scientificName) + 
+#   (0 + temp:prec | scientificName) + temp:prec + temp_seas:diapause.stage + 
+#   temp:immature.habitat + prec:immature.habitat
 
-# m_on_traits_s
-# summary(get_model(m_on_traits_s))
-
-m_on_traits2 <- lmer(onset ~ temp + prec + temp_seas + temp:prec +
+m_on_traits_final <- lmer(onset ~ temp + prec + temp_seas + temp:prec +
                        diapause.stage + immature.habitat +
-                       temp:diapause.stage + prec:diapause.stage +
                        (1 | id_cells) + (1 | scientificName) + 
                        (0 + temp | scientificName) + 
                        (0 + prec | scientificName) +
                        (0 + temp_seas | scientificName) + 
-                       (0 + temp:prec | scientificName),
+                       (0 + temp:prec | scientificName) + 
+                       temp_seas:diapause.stage + 
+                       temp:immature.habitat + 
+                       prec:immature.habitat,
                      data = model_df4, REML = FALSE, 
                      lmerControl(optimizer = "bobyqa"))
 
-# make sure we have the top model & no more interactions are needed
-# m_on_traits_s2 = step(m_on_traits2, reduce.random = T)
-# m_on_traits_s2
+# First check vifs to see if final model will stand
+car::vif(m_on_traits_final) ## Generalized Collinearity Diagnostics (Fox and Monette 1992)
+# looks good so now make sure we have the top model & no more interactions are needed
+m_on_traits_s2 = step(m_on_traits_final, reduce.random = T)
+m_on_traits_s2 # looks like we found the top model
 
-car::Anova(m_on_traits2)
-MuMIn::r.squaredGLMM(m_on_traits2)
-plot_model(m_on_traits2, type = "pred", terms = c("temp", "diapause.stage"), ci.lvl = NA)
-plot_model(m_on_traits2, type = "pred", terms = c("prec", "diapause.stage"), ci.lvl = NA)
+summary(m_on_traits_final)
+car::Anova(m_on_traits_final) # temp_seas:diapuase stage & temp:diapause stage are sig interactions
+car::vif(m_on_traits_final) ## Generalized Collinearity Diagnostics (Fox and Monette 1992)
+MuMIn::r.squaredGLMM(m_on_traits_final)
+plot_model(m_on_traits_final, type = "pred", terms = c("temp_seas", "diapause.stage"), ci.lvl = NA)
+plot_model(m_on_traits_final, type = "pred", terms = c("temp", "immature.habitat"), ci.lvl = NA)
+plot_model(m_on_traits_final, type = "pred", terms = c("prec", "immature.habitat"), ci.lvl = NA)
 
 ## Explore traits for offset data
 
@@ -201,11 +230,15 @@ m_off <- lmer(offset ~ temp + prec +  temp_seas + prec_seas + temp:prec +
               data = model_df3, REML = FALSE, 
               lmerControl(optimizer = "bobyqa"))
 
-
 summary(m_off)
 
 m_off_s <- step(m_off)
 m_off_s
+
+#Model found:
+#  offset ~ prec + temp_seas + (1 | id_cells) + (1 | scientificName) + 
+#  (0 + temp | scientificName) + (0 + prec_seas | scientificName) + 
+#  (0 + temp_seas | scientificName) + (0 + temp:prec | scientificName)
 
 # Final model without traits!
 m_off_final <-lmer(offset ~ prec +  temp_seas +
@@ -215,6 +248,7 @@ m_off_final <-lmer(offset ~ prec +  temp_seas +
                data = model_df3, REML = FALSE, 
                lmerControl(optimizer = "bobyqa"))
 
+summary(m_off_final)
 car::vif(m_off_final)
 suppressWarnings(MuMIn::r.squaredGLMM(m_off_final))
 
@@ -263,27 +297,29 @@ m_off_traits <- lmer(offset ~ prec +  temp_seas +
                     data = model_df4, REML = FALSE, 
                     lmerControl(optimizer = "bobyqa"))
 
-
+# stepwise regression to select model
 m_off_traits_s = step(m_off_traits, reduce.random = T)
+m_off_traits_s
 
+# Final offset model with traits
 m_off_traits_final <- lmer(offset ~ prec +  temp_seas +
                     development + diapause.stage + flights + immature.habitat + larval.diet +
                     (1|id_cells) + (1|scientificName) +
                     (0 + temp_seas | scientificName) + 
                     (0 + prec | scientificName) + 
-                    temp_seas:development + prec:diapause.stage + temp_seas:flights +
-                      prec:immature.habitat,
+                    temp_seas:development + prec:diapause.stage + 
+                      prec:immature.habitat + temp_seas:larval.diet,
                     data = model_df4, REML = FALSE, 
                     lmerControl(optimizer = "bobyqa"))
 
 summary(m_off_traits_final)
+car::vif(m_off_traits_final)
 car::Anova(m_off_traits_final)
 MuMIn::r.squaredGLMM(m_off_traits_final)
 plot_model(m_off_traits_final, type = "pred", terms = c("temp_seas", "development"), ci.lvl = NA)
-plot_model(m_off_traits_final, type = "pred", terms = c("temp_seas", "flights"), ci.lvl = NA)
+plot_model(m_off_traits_final, type = "pred", terms = c("temp_seas", "larval.diet"), ci.lvl = NA)
 plot_model(m_off_traits_final, type = "pred", terms = c("prec", "diapause.stage"),ci.lvl = NA)
 plot_model(m_off_traits_final, type = "pred", terms = c("prec", "immature.habitat"), ci.lvl = NA)
-
 
 ############ Duration
 
@@ -348,26 +384,29 @@ m_dur_traits_s = step(m_dur_traits, reduce.random = T)
 m_dur_traits_s
 
 m_dur_traits_final <- lmer(duration ~ temp + prec +  temp_seas + 
-        development + diapause.stage + flights + immature.habitat + 
+        development + diapause.stage + flights + immature.habitat + larval.diet +
           (1 | id_cells) + (1 | scientificName) +
           (0 + prec | scientificName) +
           (0 + temp | scientificName) + 
           (0 + prec_seas | scientificName) +
           (0 + temp_seas | scientificName) +
           (0 + temp:prec | scientificName) + 
-          temp:prec +
           temp:development +
+          prec:diapause.stage +
           temp_seas:diapause.stage +
           temp:diapause.stage + 
-          temp:flights,
+          temp:flights + 
+          prec:larval.diet,
           data = model_df4, REML = FALSE, 
           lmerControl(optimizer = "bobyqa"))
 
 summary(m_dur_traits_final)
+car::vif(m_dur_traits_final)
 car::Anova(m_dur_traits_final)
 MuMIn::r.squaredGLMM(m_dur_traits_final)
-plot_model(m_dur_traits_final, type = "pred", terms = c("temp", "prec"), ci.lvl = NA)
 plot_model(m_dur_traits_final, type = "pred", terms = c("temp_seas", "diapause.stage"), ci.lvl = NA)
 plot_model(m_dur_traits_final, type = "pred", terms = c("temp", "diapause.stage"),ci.lvl = NA)
+plot_model(m_dur_traits_final, type = "pred", terms = c("prec", "diapause.stage"),ci.lvl = NA)
 plot_model(m_dur_traits_final, type = "pred", terms = c("temp", "development"), ci.lvl = NA)
 plot_model(m_dur_traits_final, type = "pred", terms = c("temp", "flights"), ci.lvl = NA)
+plot_model(m_dur_traits_final, type = "pred", terms = c("prec", "larval.diet"),ci.lvl = NA)
