@@ -1,6 +1,4 @@
 library(tidyverse)
-library(sf)
-library(rnaturalearth)
 
 # How many species are we losing because we don't have trait data?
 
