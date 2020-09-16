@@ -223,7 +223,7 @@ fe_dur$var <- forcats::fct_rev(factor(fe_dur$var, levels = var_imp_dur,))
 
 
 dur_fe_plot <- ggplot(fe_dur, aes(val, var, height = ..density..)) +
-  ggridges::geom_density_ridges(aes(val, var, fill = Phenometric), 
+  ggridges::geom_density_ridges(aes(val, var, fill = "slateblue2"), 
                              alpha = 0.35, color = "gray70") +
   geom_point(aes(x = mean, y = var), data = fe_ci_dur, inherit.aes = FALSE,
              alpha = 0.75) +
@@ -246,7 +246,7 @@ ggsave(plot = dur_fe_plot,
 
 ## ONset and offset plot
 
-pal <- c("blue", "orange", "green")
+pal <- c("SLATEBLUE2", "tomato1", "springgreen2")
 
 fe_comb <- rbind(fe_on, fe_off) %>% 
   filter(sig != "CI overlaps zero")

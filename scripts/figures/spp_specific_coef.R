@@ -185,7 +185,7 @@ p <- ggplot(tot_coef_df, mapping = aes(x = coef, y = scientificName, color = Phe
   geom_point() +  
   geom_errorbarh(mapping = aes(xmin = low_se, xmax = high_se, y = scientificName),
                  height = 0.5) +
-  scale_color_manual(values = c("blue", "orange", "green")) + 
+  scale_color_manual(values = c("slateblue2", "tomato1", "springgreen2")) + 
   labs(x = "Temp Coef", y = "") +
   theme_minimal()
 p

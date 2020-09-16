@@ -109,7 +109,7 @@ onset_above.ground.vegetation <- 117.4678473 +
 
 popz2 <- c(pop.x2, pop.x2, pop.x2, pop.x2)
 onset_ih <- c(onset_above.ground.vegetation, onset_fw, onset_nest, onset_underground)
-Immature.Habitat <- c(rep("Above Ground Vegetation", 3171), rep("Fresh Water", 3171), 
+Immature.Habitat <- c(rep("Above Ground Vegetation", 3171), rep("Freshwater", 3171), 
                       rep("Nest", 3171), rep("Underground", 3171))
 
 pop_immature.habitat <- data.frame(popz2 = popz2, onset = onset_ih, Immature.Habitat = as.factor(Immature.Habitat)) 
@@ -120,7 +120,12 @@ pih <- ggplot() +
   labs(x = "Pop", y = "Onset") + 
   scale_color_viridis_d() +
   theme_bw()
-   
+
+onset_interactions <- egg::ggarrange(tpop, tprec, pih, ncol = 1,
+                                     labels = c("A"," B", "C"))
+
+ggsave(plot = onset_interactions, filename = "Tables&Figures/onset_interactions.png",
+       dpi = 400, width = 8, height = 8)
 
 ### Offset
 
@@ -153,7 +158,7 @@ offset_above.ground.vegetation_ts <- 281.049541 +
 
 tmpseas.x <- c(tmpseas, tmpseas,tmpseas,tmpseas)
 offset_ih_ts <- c(offset_above.ground.vegetation_ts, offset_fw_ts, offset_nest_ts, offset_underground_ts)
-Immature.Habitat <- c(rep("Above Ground Vegetation", 3171), rep("Fresh Water", 3171), 
+Immature.Habitat <- c(rep("Above Ground Vegetation", 3171), rep("Freshwater", 3171), 
                       rep("Nest", 3171), rep("Underground", 3171))
 
 tempseas_immature.habitat <- data.frame(tempseaz = tmpseas.x, offset = offset_ih_ts, 
@@ -197,7 +202,7 @@ offset_above.ground.vegetation_prec <- 281.049541 +
 
 prec.x <- c(pcip, pcip, pcip, pcip)
 offset_ih_prec <- c(offset_above.ground.vegetation_prec, offset_fw_prec, offset_nest_prec, offset_underground_prec)
-Immature.Habitat <- c(rep("Above Ground Vegetation", 3171), rep("Fresh Water", 3171), 
+Immature.Habitat <- c(rep("Above Ground Vegetation", 3171), rep("Freshwater", 3171), 
                       rep("Nest", 3171), rep("Underground", 3171))
 
 prec_immature.habitat <- data.frame(precz = prec.x, offset = offset_ih_prec, 
@@ -212,6 +217,13 @@ prec_ih <- ggplot() +
    
 
 prec_ih
+
+offset_interactions <- egg::ggarrange(tsih, prec_ih, ncol = 1,
+                                      labels = c("A"," B"))
+
+ggsave(plot = offset_interactions, filename = "Tables&Figures/offset_interactions.png",
+       dpi = 400, width = 8, height = 6)
+
 
 ## Duration
 
@@ -283,7 +295,7 @@ tempseas_seas_dur <- data.frame(tempseaz = tmpseas.x.seas, duration = dur_seas_t
 
 tmpseas_seas <- ggplot() + 
   geom_line(tempseas_seas_dur, mapping = aes(x = tempseaz, y = duration, color = Seasonality), size = 1.05) +
-  labs(x = "Temp Seas", y = "Offset") + 
+  labs(x = "Temp Seas", y = "Duration") + 
   theme_bw()
    
 tmpseas_seas
@@ -310,7 +322,7 @@ temp_voltine_dur <- data.frame(Temp = tmp_volt.x, duration = dur_tmp_vol,
 
 tvd <- ggplot() + 
   geom_line(temp_voltine_dur, mapping = aes(x = Temp, y = duration, color = Voltinism), size = 1.05) +
-  labs(x = "Temp", y = "Offset") + 
+  labs(x = "Temp", y = "Duration") + 
   scale_color_manual(values = c("maroon", "gold")) +
   theme_bw()
 
@@ -339,7 +351,7 @@ ts_voltine_dur <- data.frame(Temp_Seas = ts_volt.x, duration = dur_tmpseas_vol,
 
 tsvd <- ggplot() + 
   geom_line(ts_voltine_dur, mapping = aes(x = Temp_Seas, y = duration, color = Voltinism), size = 1.05) +
-  labs(x = "Temp Seas", y = "Offset") + 
+  labs(x = "Temp Seas", y = "Duration") + 
   scale_color_manual(values = c("maroon", "gold")) +
   theme_bw()
    
@@ -375,7 +387,7 @@ dur_above.ground.vegetation <- 139.1467457 +
 
 popz2 <- c(pop.x2, pop.x2, pop.x2, pop.x2)
 dur_ih <- c(dur_above.ground.vegetation, dur_fw, dur_nest, dur_underground)
-Immature.Habitat <- c(rep("Above Ground Vegetation", 3171), rep("Fresh Water", 3171), 
+Immature.Habitat <- c(rep("Above Ground Vegetation", 3171), rep("Freshwater", 3171), 
                       rep("Nest", 3171), rep("Underground", 3171))
 
 dur_pop_immature.habitat <- data.frame(popz2 = popz2, Duration = dur_ih, Immature.Habitat = as.factor(Immature.Habitat)) 
@@ -426,20 +438,30 @@ dur_ld <- ggplot() +
    
 dur_ld
 
+dur_interactions <- egg::ggarrange(dur_pop, tmpseas_seas, tvd, 
+                                   tsvd, dur_pih, dur_ld, 
+                                   ncol = 2,
+                                   labels = c("A"," B", "C", "D", "E", "F")
+                                  )
+
+ggsave(plot = dur_interactions, filename = "Tables&Figures/duration_interactions.png",
+       dpi = 400, width = 10, height = 6)
+
+
 ## Grid arrange over a 6x3 matrix
-lay <- rbind(c(1,2,3),
-             c(4,5,6),
-             c(7, NA, 8),
-             c(NA, NA, 9),
-             c(NA, NA, 10),
-             c(NA, NA, 11))
-
-
-
-ga <- grid.arrange(arrangeGrob(tpop, top = "Onset"), arrangeGrob(tsih, top = "Offset"), 
-             arrangeGrob(dur_pop, top = "Duration"), tprec, prec_ih,
-             tmpseas_seas, pih, tvd, tsvd, dur_pih, dur_ld, layout_matrix = lay)
-
-ggsave(plot = ga, filename = "Tables&Figures/InteractiveEffects.png", dpi = 400, 
-       width = 12, height = 10)
+##lay <- rbind(c(1,2,3),
+#             c(4,5,6),
+#             c(7, NA, 8),
+#             c(NA, NA, 9),
+#             c(NA, NA, 10),
+#             c(NA, NA, 11))
+#
+#
+#
+##ga <- grid.arrange(arrangeGrob(tpop, top = "Onset"), arrangeGrob(tsih, top = "Offset"), 
+#             arrangeGrob(dur_pop, top = "Duration"), tprec, prec_ih,
+#             tmpseas_seas, pih, tvd, tsvd, dur_pih, dur_ld, layout_matrix = lay)
+#
+#ggsave(plot = ga, filename = "Tables&Figures/InteractiveEffects.png", dpi = 400, 
+#       width = 12, height = 10)
 

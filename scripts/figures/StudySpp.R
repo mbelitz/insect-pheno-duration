@@ -57,7 +57,6 @@ spp_seas2 <- spp_seas %>%
 # combine traits and results
 model_df3_5cells <- left_join(model_df_5cells, spp_traits)
 traits <- left_join(model_df3_5cells, spp_seas2) %>% 
-  filter(diapause.stage != "None") %>% 
   select(-ave_on) %>% 
   na.omit()
 
@@ -73,6 +72,17 @@ no_traits_bp <- no_traits %>%
   group_by(Order) %>% 
   summarise(count = n()) %>% 
   mutate(Included = "No - Missing Traits")
+
+## do not overwinter
+noOverwinter_spp_bp <- model_df3_5cells %>% 
+  filter(diapause.stage == "None")
+
+noOverwinter_spp_bp <- noOverwinter_spp_bp %>% 
+  distinct(scientificName, .keep_all = TRUE) %>% 
+  group_by(Order) %>% 
+  summarise(count = n()) %>% 
+  mutate(Included = "No - NoOverwinter")
+
   
 ## Mig spp
 
@@ -99,6 +109,14 @@ mig_spp_bp <- mig_spp_bp %>%
   summarise(count = n()) %>% 
   mutate(Included = "No - Migratory")
 
+mig_spp_bp2 <- full_join(mig_spp_bp, noOverwinter_spp_bp)
+
+mig_spp_bp3 <- data.frame(
+  Order = c("Lepidoptera", "Odonata" , "Diptera"),
+  count = c(13, 11, 1),
+  Included = c("No - Migratory/No Diapuase", "No - Migratory/No Diapuase", "No - Migratory/No Diapuase")
+)
+
 # Species included
 
 final_spp <- model_df_5cells %>% 
@@ -109,8 +127,7 @@ final_spp <- model_df_5cells %>%
 
 ## Total SPP df
 
-t_spp_df <- rbind(final_spp, mig_spp_bp, no_traits_bp)
-
+t_spp_df <- rbind(final_spp, mig_spp_bp3, no_traits_bp)
 
 
 spp_fig <- ggplot(t_spp_df) + 
@@ -120,7 +137,8 @@ spp_fig <- ggplot(t_spp_df) +
   scale_y_continuous(expand = c(0,0)) +
   theme_classic()
 
-ggsave(plot = spp_fig, filename = "Tables&Figures/StudySpecies.png", dpi = 400)
+ggsave(plot = spp_fig, filename = "Tables&Figures/StudySpecies.png", dpi = 400,
+       width = 8, height = 5)
 
 
 

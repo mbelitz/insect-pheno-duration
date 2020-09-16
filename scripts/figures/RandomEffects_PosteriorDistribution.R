@@ -245,7 +245,7 @@ samps <- samps %>%
   dplyr::filter(abs(val - mean(val)) < (10 * sd(val))) %>% 
   dplyr::ungroup()
 
-pal <- c("blue", "orange", "green")
+pal <- c("SLATEBLUE2", "tomato1", "springgreen2")
 
 re_dur <- filter(samps, effect_type == "Random Effects") %>% 
   mutate(Phenometric = "Duration")
@@ -292,3 +292,4 @@ comb_re_pd <- ggplot(re_comb, aes(val, var, height = ..density..)) +
 
 ggsave(filename = "Tables&Figures/RandomEffects_PosteriorDistribution.png", 
        dpi = 400, height = 8, width = 8)
+
